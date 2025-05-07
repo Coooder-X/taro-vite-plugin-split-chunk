@@ -1,0 +1,42 @@
+{
+  "name": "vite-plugin-split-chunk",
+  "type": "commonjs",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "vite",
+    "Plugin"
+  ],
+  "author": "",
+  "homepage": "",
+  "license": "MIT",
+  "main": "index.js",
+  "typings": "types/index.d.ts",
+  "files": [
+    "dist",
+    "index.js",
+    "types"
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "bugs": {
+    "url": ""
+  },
+  "dependencies": {
+    "@tarojs/taro": "^4.0.10",
+    "colorette": "^2.0.20",
+    "@babel/plugin-transform-runtime": "^7.26.10"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "typescript": "^5.8.3",
+    "rollup": "^3.29.5",
+    "@rollup/plugin-typescript": "^12.1.2"
+  }
+}

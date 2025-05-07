@@ -1,0 +1,19 @@
+{
+  "extends": ["taro/react"],
+  "rules": {
+    "react/jsx-uses-react": "off",
+    "react/react-in-jsx-scope": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["../.eslintrc.json"],
+      "rules": {
+        "jsx-quotes": [2, "prefer-double"]
+      },
+      "parserOptions": {
+        "project": "./apps/mini-app/vite-plugin-split-chunk/tsconfig.json"
+      }
+    }
+  ]
+}
