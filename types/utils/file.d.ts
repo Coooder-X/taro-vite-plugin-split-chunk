@@ -9,10 +9,10 @@
  * 3、插件运行结束后，删除临时配置文件
  */
 export declare class TempFileManager {
-  private tmpAppConfigPath;
-  private appConfigPath;
-  constructor(appConfigPath: string);
-  createTmpAppConfig(): void;
-  removeTmpAppConfig(): void;
-  getAppConfig(): Promise<any>;
+    private tmpAppConfigPath;
+    private appConfigPath;
+    constructor(appConfigPath: string);
+    createTmpAppConfig(): void;
+    removeTmpAppConfig(): void;
+    getAppConfig(): Promise<any>;
 }

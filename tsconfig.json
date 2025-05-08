@@ -14,7 +14,7 @@
     "target": "ES2021",
     "module": "CommonJS",
     "preserveConstEnums": true,
-    "outDir": "./",
+    "outDir": "./dist",
     "traceResolution": false,
     "sourceMap": false,
     "rootDir": "./src",
@@ -22,6 +22,6 @@
     "declarationDir": "types",
     "pretty": true
   },
-  "include": ["src/**/*", "types/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
