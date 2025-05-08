@@ -19,8 +19,9 @@ import {
   isSubPackageEntry,
 } from './utils/chunks';
 import { analyzeDep, ChunksInfo } from './utils/dependence-analyze';
-import { TempFileManager } from './utils/file';
+import { TempFileManager } from './utils/temp-file-manager';
 import { logger, inspectOptions } from './utils/logger';
+import { getFileNameWithoutExt } from './utils/file';
 
 export interface ViteSplitChunkPluginProps {
   appConfigPath: string;
@@ -162,7 +163,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
     generateBundle(_options: OutputOptions, bundle: OutputBundle) {
       logger.success(`generateBundle hook 执行完成`, 'generateBundle');
       for (const [chunkName, file] of Object.entries(bundle)) {
-        const targetName = chunkName.split('.')[0];
+        const targetName = getFileNameWithoutExt(chunkName);
         // 如果文件是一个 chunk，且仅被子包依赖，则应当输出到子包的 pages 中
         if (!isSubpackageChunkFile(chunkContext!.chunkPageMap, chunkContext!.subPackagesInfoList, chunkName)) continue;
 
@@ -194,7 +195,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
           isSubpackageChunkFile(chunkContext!.chunkPageMap, chunkContext!.subPackagesInfoList, fileName);
         if (!isWxssChunk) continue;
 
-        const targetName = fileName.split('.')[0];
+        const targetName = getFileNameWithoutExt(fileName);
         const pageList = chunkContext.chunkPageMap.get(targetName);
         if (!pageList) continue;
 

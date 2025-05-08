@@ -1,5 +1,5 @@
-import * as path from 'path';
 import { SubPackageInfo } from './parse-subpackage';
+import { getFileNameWithoutExt } from './file';
 
 /**
  * 判断一个文件是不是子包中的公共模块 chunk
@@ -23,7 +23,7 @@ export function isSubpackageChunkFile(
 }
 
 export function isSubPackageEntry(fileName: string, subPackagesInfoList: SubPackageInfo[]) {
-  const targetName = path.basename(fileName, path.extname(fileName));
+  const targetName = getFileNameWithoutExt(fileName);
   return subPackagesInfoList.some((subPackageInfo) => subPackageInfo.pages.some((page) => page.includes(targetName)));
 }
 
