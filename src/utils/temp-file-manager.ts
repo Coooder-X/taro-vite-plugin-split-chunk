@@ -1,7 +1,7 @@
-import * as path from "path";
 import * as fs from 'fs';
-import { logger } from "./logger";
-import { getFileNameWithoutExt } from "./file";
+import * as path from 'path';
+import { getFileNameWithoutExt } from './file';
+import { logger } from './logger';
 
 /**
  * 【背景】：

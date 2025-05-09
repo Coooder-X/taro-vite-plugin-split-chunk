@@ -1,19 +1,74 @@
 {
-  "extends": ["taro/react"],
+  "extends": ["taro/react", "plugin:import/recommended", "prettier"],
+  "plugins": ["import", "prettier", "@typescript-eslint"],
   "rules": {
     "react/jsx-uses-react": "off",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "newlines-between": "never",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    },
+
+    "semi": ["error", "always"],
+    "semi-spacing": ["error", { "before": false, "after": true }],
+    
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1, "maxBOF": 0 }],
+    "no-trailing-spaces": "error",
+    
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "jsx-quotes": ["error", "prefer-double"],
+    
+    "space-before-blocks": ["error", "always"],
+    "space-before-function-paren": ["error", { "anonymous": "always", "named": "never", "asyncArrow": "always" }],
+    "keyword-spacing": ["error", { "before": true, "after": true }],
+    
+    "eqeqeq": ["error", "always"],
+    "no-console": ["warn", { "allow": ["error", "warn"] }],
+    "no-debugger": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "object-shorthand": "error",
+    "arrow-parens": ["error", "always"]
   },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx"],
-      "extends": ["../.eslintrc.json"],
       "rules": {
-        "jsx-quotes": [2, "prefer-double"]
+        "no-undef": "off",
+        "indent": "off",
+        "@typescript-eslint/indent": ["error", 2],
+        
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "warn"
       },
       "parserOptions": {
-        "project": "./apps/mini-app/vite-plugin-split-chunk/tsconfig.json"
-      }
+        "project": "./tsconfig.json"
+      },
+      "plugins": ["@typescript-eslint"]
     }
   ]
 }

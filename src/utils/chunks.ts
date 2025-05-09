@@ -1,5 +1,5 @@
-import { SubPackageInfo } from './parse-subpackage';
 import { getFileNameWithoutExt } from './file';
+import { SubPackageInfo } from './parse-subpackage';
 
 /**
  * 判断一个文件是不是子包中的公共模块 chunk
