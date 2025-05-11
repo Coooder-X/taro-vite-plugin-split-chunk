@@ -19,7 +19,7 @@ export declare function isSubPackageEntry(fileName: string, subPackagesInfoList:
  * @returns 返回一个 map，key 是页面根目录，value 是该页面下所有 js 入口文件路径构成的数组，如
     [
       'pages/dog/index',
-      'pages/dog/biggle',
+      'pages/dog/beagle',
       'pages/dog/snoopy/snoopy'
     ]
  */
