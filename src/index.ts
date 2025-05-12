@@ -109,10 +109,10 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
     renderChunk(code: string, chunk: RenderedChunk) {
       const { fileName } = chunk;
-      const { subPackagesInfoList } = chunkContext;
-      const chunkNameList = [...chunkContext.chunkPageMap.keys()];
+      const { chunkPageMap, subPackagesInfoList } = chunkContext;
+      const chunkNameList = [...chunkPageMap.keys()];
       // 修改仅被子包依赖的 chunk 代码中对主包公共代码的引用路径
-      if (isSubpackageChunkFile(chunkContext.chunkPageMap, subPackagesInfoList, fileName)) {
+      if (isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, fileName)) {
         // taro 的 commonChunks 中可配置公共文件名，但只适用于 webpack 场景。因此在 vite 场景下，写死公共文件名称，只能是 taro、common、vendors
         const newCode = code
           .replaceAll("require('./taro.js')", "require('../../taro.js')")
@@ -135,7 +135,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
           if (
             !accCode.includes(chunkName) ||
-            !isSubpackageChunkFile(chunkContext.chunkPageMap, subPackagesInfoList, chunkName)
+            !isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, chunkName)
           ) {
             return accCode;
           }
@@ -167,12 +167,14 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
      */
     generateBundle(_options: OutputOptions, bundle: OutputBundle) {
       logger.success(`generateBundle hook 执行完成`, 'generateBundle');
+      const { chunkPageMap, subPackagesInfoList } = chunkContext;
+
       for (const [chunkName, file] of Object.entries(bundle)) {
         const targetName = getFileNameWithoutExt(chunkName);
         // 如果文件是一个 chunk，且仅被子包依赖，则应当输出到子包的 pages 中
-        if (!isSubpackageChunkFile(chunkContext!.chunkPageMap, chunkContext!.subPackagesInfoList, chunkName)) continue;
+        if (!isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, chunkName)) continue;
 
-        const outputPages = chunkContext!.chunkPageMap.get(targetName)!;
+        const outputPages = chunkPageMap.get(targetName)!;
         if (!outputPages) return;
 
         for (const outputDir of outputPages) {
@@ -193,20 +195,21 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
      */
     writeBundle(options: OutputOptions, bundle: OutputBundle) {
       const distPath = options.dir;
+      const { chunkPageMap, subPackagesInfoList } = chunkContext;
+
       for (const [, file] of Object.entries(bundle)) {
         const fileName = path.basename(file.fileName);
-
         const isWxssChunk =
           file.type === 'asset' &&
           path.extname(fileName) === '.wxss' &&
-          isSubpackageChunkFile(chunkContext!.chunkPageMap, chunkContext!.subPackagesInfoList, fileName);
+          isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, fileName);
         if (!isWxssChunk) continue;
 
         const targetName = getFileNameWithoutExt(fileName);
-        const pageList = chunkContext.chunkPageMap.get(targetName);
+        const pageList = chunkPageMap.get(targetName);
         if (!pageList) continue;
 
-        const subPackageEntryFileNameMap = getSubPackageEntryFileNameMap(pageList, chunkContext!.subPackagesInfoList);
+        const subPackageEntryFileNameMap = getSubPackageEntryFileNameMap(pageList, subPackagesInfoList);
 
         pageList.forEach((pageName) => {
           // 遍历当前子包目录中，所有页面的入口 wxss 文件，为它们添加对公共样式的引用
