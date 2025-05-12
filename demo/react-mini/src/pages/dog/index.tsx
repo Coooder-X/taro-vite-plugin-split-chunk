@@ -10,6 +10,7 @@ export default function Dog () {
   })
 
   const handleNavigate = (url: string) => {
+    debugger
     Taro.navigateTo({
       url,
     }).catch((err) => {

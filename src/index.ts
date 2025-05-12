@@ -12,6 +12,7 @@ import {
   RenderedChunk,
 } from 'rollup';
 import {
+  getSubPackageRootFromFileName,
   getRelativeImportPath,
   getRelativeImportWxssPath,
   getSubPackageEntryFileNameMap,
@@ -107,9 +108,10 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
     renderChunk(code: string, chunk: RenderedChunk) {
       const { fileName } = chunk;
+      const { subPackagesInfoList } = chunkContext;
       const chunkNameList = [...chunkContext.chunkPageMap.keys()];
       // 修改仅被子包依赖的 chunk 代码中对主包公共代码的引用路径
-      if (isSubpackageChunkFile(chunkContext.chunkPageMap, chunkContext!.subPackagesInfoList, fileName)) {
+      if (isSubpackageChunkFile(chunkContext.chunkPageMap, subPackagesInfoList, fileName)) {
         // taro 的 commonChunks 中可配置公共文件名，但只适用于 webpack 场景。因此在 vite 场景下，写死公共文件名称，只能是 taro、common、vendors
         const newCode = code
           .replaceAll("require('./taro.js')", "require('../../taro.js')")
@@ -123,14 +125,16 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
       }
 
       // 修改所有依赖了子包 chunk 的 js 文件代码中对 chunk 的引用路径(若未被配置为子包，则打出的 chunk 放在主包中，引用路径不修改)
-      if (isSubPackageEntry(fileName, chunkContext!.subPackagesInfoList)) {
+      if (isSubPackageEntry(fileName, subPackagesInfoList)) {
         const newCode = chunkNameList.reduce((accCode, chunkName) => {
-          const relativeImportPath = getRelativeImportPath(chunkContext!.idPageMap, chunkName, chunk.facadeModuleId);
+          const subPackageRoot = getSubPackageRootFromFileName(fileName, subPackagesInfoList);
+          if (!subPackageRoot) return  accCode;
+          const relativeImportPath = getRelativeImportPath(subPackageRoot, chunkName, chunk.facadeModuleId);
           if (!relativeImportPath) return accCode;
 
           if (
             !accCode.includes(chunkName) ||
-            !isSubpackageChunkFile(chunkContext.chunkPageMap, chunkContext!.subPackagesInfoList, chunkName)
+            !isSubpackageChunkFile(chunkContext.chunkPageMap, subPackagesInfoList, chunkName)
           ) {
             return accCode;
           }
@@ -168,6 +172,8 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         if (!isSubpackageChunkFile(chunkContext!.chunkPageMap, chunkContext!.subPackagesInfoList, chunkName)) continue;
 
         const outputPages = chunkContext!.chunkPageMap.get(targetName)!;
+        if (!outputPages) return;
+
         for (const outputDir of outputPages) {
           const newChunkName = `${outputDir}/${file.fileName}`;
           logger.info(`将原 chunk ${chunkName} 输出到 ${newChunkName}`, 'generateBundle');

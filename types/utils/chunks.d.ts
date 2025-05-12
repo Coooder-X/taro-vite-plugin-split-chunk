@@ -26,12 +26,19 @@ export declare function isSubPackageEntry(fileName: string, subPackagesInfoList:
 export declare function getSubPackageEntryFileNameMap(pageList: string[], subPackagesInfoList: SubPackageInfo[]): Map<string, string[]>;
 /**
  * 分包后，页面子包公共模块位于页面根目录下。页面目录下的所有 js 文件需要更新对该公共模块引用的相对路径，该路径由此函数计算
- * @param idPageMap pageId 到页面根目录的映射，如 page1 => 'pages/cat'
+ * @param subPackageRoot 子包根目录路径，如 'pages/dog'
  * @param chunkName 子包公共模块的文件名，和 pageId 同名，如 page1（不带文件拓展名，此处只可能为 js 文件）
  * @param filePath 需要导入子包公共模块的文件的绝对路径
  * @returns 返回 filePath 对应文件导入子包页面公共模块时，require 语句中需要的相对路径
  */
-export declare function getRelativeImportPath(idPageMap: Map<string, string>, chunkName: string, filePath: string | null): string | undefined;
+export declare function getRelativeImportPath(subPackageRoot: string, chunkName: string, filePath: string | null): string | undefined;
+/**
+ * 根据文件路径，计算文件所处的页面根目录路径
+ * @param fileName renderChunk 钩子中，chunk 的文件名
+ * @param subPackagesInfoList 子包配置信息
+ * @returns 子包根目录路径，如 'pages/dog'
+ */
+export declare function getSubPackageRootFromFileName(fileName: string, subPackagesInfoList: SubPackageInfo[]): string | undefined;
 /**
  * 分包后，页面子包公共样式文件位于页面根目录下。页面目录下的所有 wxss 文件需要更新对该公共样式文件引用的相对路径，该路径由此函数计算
  * @param pageRoot 当前页面根目录

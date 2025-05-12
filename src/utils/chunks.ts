@@ -60,19 +60,27 @@ export function getSubPackageEntryFileNameMap(pageList: string[], subPackagesInf
 
 /**
  * 分包后，页面子包公共模块位于页面根目录下。页面目录下的所有 js 文件需要更新对该公共模块引用的相对路径，该路径由此函数计算
- * @param idPageMap pageId 到页面根目录的映射，如 page1 => 'pages/cat'
+ * @param subPackageRoot 子包根目录路径，如 'pages/dog'
  * @param chunkName 子包公共模块的文件名，和 pageId 同名，如 page1（不带文件拓展名，此处只可能为 js 文件）
  * @param filePath 需要导入子包公共模块的文件的绝对路径
  * @returns 返回 filePath 对应文件导入子包页面公共模块时，require 语句中需要的相对路径
  */
-export function getRelativeImportPath(idPageMap: Map<string, string>, chunkName: string, filePath: string | null) {
+export function getRelativeImportPath(subPackageRoot: string, chunkName: string, filePath: string | null) {
   if (!filePath) return;
-  const pageName = idPageMap.get(chunkName);
-  if (!pageName) return;
-  const chunkPathInPageRoot = filePath.split(pageName)[1];
+  const chunkPathInPageRoot = filePath.split(subPackageRoot)[1];
   if (!chunkPathInPageRoot) return;
   const relativeImportPath = `${getRelativeLevelPath(chunkPathInPageRoot)}${chunkName}.js`;
   return relativeImportPath;
+}
+
+/**
+ * 根据文件路径，计算文件所处的页面根目录路径
+ * @param fileName renderChunk 钩子中，chunk 的文件名
+ * @param subPackagesInfoList 子包配置信息
+ * @returns 子包根目录路径，如 'pages/dog'
+ */
+export function getSubPackageRootFromFileName(fileName: string, subPackagesInfoList: SubPackageInfo[]) {
+  return subPackagesInfoList.find((subPackage) => fileName.includes(subPackage.root))?.root;
 }
 
 /**
