@@ -10,7 +10,7 @@ export default function Dog () {
   })
 
   const handleNavigate = (url: string) => {
-    debugger
+    debugger  // 用于断点调试，测试分包插件在 dev 下 source map 的正确性
     Taro.navigateTo({
       url,
     }).catch((err) => {

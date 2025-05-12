@@ -59,7 +59,6 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
       return {
         ...options,
-        // cache: false, // rollup 如果缓存了，会导致依赖分析有问题，最终小程序报错(但不缓存 transform 要跑全部)
       };
     },
 
@@ -97,9 +96,11 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         return chunk;
       };
 
+      const useSourceMap = process.env.NODE_ENV === 'development' ? true : false; // 生成 .js.map 文件，保证dev下断点调试
+
       const newOutputOptions = {
         ...outputOptions,
-        sourcemap: false, // 不生成 .js.map 文件(不影响dev下断点调试)
+        sourcemap: useSourceMap,
         manualChunks: getManualChunkAlias,
       };
 
