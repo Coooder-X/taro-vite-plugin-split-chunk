@@ -1,10 +1,10 @@
 import { AppConfig } from '@tarojs/taro';
 import { inspect } from 'util';
 import { cloneDeep } from 'lodash';
-import { inspectOptions, logger } from './logger';
-import { PageInfo, parseSubpackage, SubPackageInfo } from './parse-subpackage';
 import { ChunkName, ModuleId, PageId, PageRoot } from '../types';
 import { isMainPackagePage } from './chunks';
+import { inspectOptions, logger } from './logger';
+import { PageInfo, parseSubpackage, SubPackageInfo } from './parse-subpackage';
 
 export interface ChunksInfo {
   subChunkMap: Map<ModuleId, ChunkName>;
@@ -129,8 +129,9 @@ class DependencyAnalyzer {
       }
       // 有可能这个module是node modules 中的依赖，或者是app.ts等，不被page引用
       if (!pages.length) continue;
+      // TODO: 优化这里的 index 判断
       // 被首页引用的不参与打入子包的逻辑
-      if (pages.some(page => isMainPackagePage(page, this.mainPageInfoList))) continue;
+      if (pages.some((page) => isMainPackagePage(page, this.mainPageInfoList))) continue;
       pages = [...new Set(pages)].sort();
       const chunkName = pages.map((item) => this.pageIdMap.get(item)).join('_') as ChunkName;
       this.chunkPageMap.set(chunkName, pages);

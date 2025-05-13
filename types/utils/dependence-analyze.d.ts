@@ -1,6 +1,6 @@
 import { AppConfig } from '@tarojs/taro';
-import { SubPackageInfo } from './parse-subpackage';
 import { ChunkName, ModuleId, PageId, PageRoot } from '../types';
+import { SubPackageInfo } from './parse-subpackage';
 export interface ChunksInfo {
     subChunkMap: Map<ModuleId, ChunkName>;
     pageIdMap: Map<PageRoot, PageId>;

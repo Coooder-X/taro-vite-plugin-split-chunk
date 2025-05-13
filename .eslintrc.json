@@ -1,6 +1,26 @@
 {
-  "extends": ["taro/react", "plugin:import/recommended", "prettier"],
+  "extends": [
+    "taro/react",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "prettier",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"],
   "plugins": ["import", "prettier", "@typescript-eslint"],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      },
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  },
   "rules": {
     "react/jsx-uses-react": "off",
     "react/react-in-jsx-scope": "off",
@@ -24,11 +44,6 @@
         }
       }
     ],
-    "import/resolver": {
-      "node": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
-      }
-    },
 
     "semi": ["error", "always"],
     "semi-spacing": ["error", { "before": false, "after": true }],
@@ -63,7 +78,7 @@
         
         "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
         "@typescript-eslint/explicit-module-boundary-types": "off",
-        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/type-annotation-spacing": "error"
       },
       "parserOptions": {

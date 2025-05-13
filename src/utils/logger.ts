@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { blue, red, bold, green, yellow } from 'colorette';
 
 const tag = 'ViteSplitChunkPlugin';

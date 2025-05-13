@@ -11,6 +11,7 @@ import {
   OutputOptions,
   RenderedChunk,
 } from 'rollup';
+import { ChunkName, FilePath, ModuleId } from './types';
 import {
   getSubPackageRootFromFileName,
   getRelativeImportPath,
@@ -20,10 +21,9 @@ import {
   isSubPackagePageEntry,
 } from './utils/chunks';
 import { analyzeDep, ChunksInfo } from './utils/dependence-analyze';
-import { TempFileManager } from './utils/temp-file-manager';
-import { logger, inspectOptions } from './utils/logger';
 import { getFileNameWithoutExt } from './utils/file';
-import { ChunkName, FilePath, ModuleId } from './types';
+import { logger, inspectOptions } from './utils/logger';
+import { TempFileManager } from './utils/temp-file-manager';
 
 export interface ViteSplitChunkPluginProps {
   appConfigPath: string;
@@ -167,7 +167,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
      * 删除的旧键值对应均为 bundle[chunkName]。
      */
     generateBundle(_options: OutputOptions, bundle: OutputBundle) {
-      logger.success(`generateBundle hook 执行完成`, 'generateBundle');
+      logger.success('generateBundle hook 执行完成', 'generateBundle');
       const { chunkPageMap, subPackagesInfoList } = chunkContext;
 
       for (const [chunkFilePath, file] of Object.entries(bundle)) {
@@ -237,7 +237,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         delete bundle[fileName];
       }
 
-      logger.success(`build finish`, 'writeBundle');
+      logger.success('build finish', 'writeBundle');
     },
   };
 }

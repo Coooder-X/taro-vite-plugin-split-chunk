@@ -21,8 +21,9 @@
     "rootDir": "./src",
     "declaration": true,
     "declarationDir": "types",
-    "pretty": true
+    "pretty": true,
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { FilePath } from '../types';
 import { getFileNameWithoutExt } from './file';
 import { logger } from './logger';
-import { FilePath } from '../types';
 
 /**
  * 【背景】：
@@ -27,7 +27,7 @@ export class TempFileManager {
 
   public createTmpAppConfig() {
     if (!this.tmpAppConfigPath) return;
-    
+
     const appConfigCode = fs.readFileSync(this.appConfigPath, 'utf8');
     const newCode = appConfigCode.replace(/defineAppConfig\((\{[\s\S]*\})\)/, '$1').replace(/definePageConfig\((\{[\s\S]*\})\)/, '$1');
     fs.writeFileSync(this.tmpAppConfigPath, newCode, 'utf8');

@@ -25,9 +25,9 @@ export function isSubpackageChunkFile(
 
 /**
  * 判断一个文件是不是子包中页面的入口文件
- * @param fileName 
- * @param subPackagesInfoList 
- * @returns 
+ * @param fileName
+ * @param subPackagesInfoList
+ * @returns
  */
 export function isSubPackagePageEntry(fileName: FilePath, subPackagesInfoList: SubPackageInfo[]) {
   const targetName = getFileNameWithoutExt(fileName);
@@ -36,9 +36,9 @@ export function isSubPackagePageEntry(fileName: FilePath, subPackagesInfoList: S
 
 /**
  * 判断一个页面是不是主包中的页面
- * @param pageRoot 
- * @param mainPageInfoList 
- * @returns 
+ * @param pageRoot
+ * @param mainPageInfoList
+ * @returns
  */
 export function isMainPackagePage(pageRoot: PageRoot, mainPageInfoList: PageInfo[]) {
   return mainPageInfoList.some((page) => page.root === pageRoot);
@@ -52,7 +52,7 @@ export function isMainPackagePage(pageRoot: PageRoot, mainPageInfoList: PageInfo
       root: 'pages/dog',
       pages: ['index', 'beagle', 'snoopy/snoopy'],
     }
- * @returns 返回一个 map，key 是页面根目录，value 是该页面下所有 js 入口文件路径构成的数组，如 
+ * @returns 返回一个 map，key 是页面根目录，value 是该页面下所有 js 入口文件路径构成的数组，如
     [
       'pages/dog/index',
       'pages/dog/beagle',
