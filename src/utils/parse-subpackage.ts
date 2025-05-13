@@ -1,13 +1,14 @@
 import { AppConfig } from '@tarojs/taro';
+import { pageEntryPath, PageRoot } from '../types';
 
 export interface PageInfo {
-  root: string;
-  page: string;
+  root: PageRoot;
+  page: pageEntryPath;
 }
 
 export interface SubPackageInfo {
-  root: string;
-  pages: string[];
+  root: PageRoot;
+  pages: pageEntryPath[];
 }
 
 export function parseSubpackage(appConfig: AppConfig) {
@@ -16,24 +17,24 @@ export function parseSubpackage(appConfig: AppConfig) {
   const subPackagesInfoList = subPackages.map(
     (sub) =>
       ({
-        root: sub.root,
-        pages: sub.pages.map((item) => `${sub.root}/${item}`),
+        root: sub.root as PageRoot,
+        pages: sub.pages.map((item) => `${sub.root}/${item}` as pageEntryPath),
       }) satisfies SubPackageInfo,
   );
 
-  const mainPageInfoList =
-    appConfig.pages?.map((item) => ({
-      page: item,
-      root: item.split('/').slice(0, -1).join('/'),
+  const mainPageInfoList: PageInfo[] =
+    appConfig.pages?.map((page: pageEntryPath) => ({
+      page,
+      root: getFatherRoot(page),
     })) || [];
 
   const pageInfoList: PageInfo[] = [...mainPageInfoList];
 
   subPackagesInfoList.forEach((item) => {
-    pageInfoList.push(...item.pages.map((page) => ({ page, root: page.split('/').slice(0, -1).join('/') })));
+    pageInfoList.push(...item.pages.map((page) => ({ page, root: getFatherRoot(page) })));
   });
 
-  const pageRootList: string[] = [
+  const pageRootList: PageRoot[] = [
     ...mainPageInfoList.map((item) => item.root),
     ...subPackagesInfoList.map((item) => item.root),
   ];
@@ -44,4 +45,8 @@ export function parseSubpackage(appConfig: AppConfig) {
     subPackagesInfoList,
     mainPageInfoList,
   };
+}
+
+function getFatherRoot(page: pageEntryPath): PageRoot {
+  return page.split('/').slice(0, -1).join('/') as PageRoot;
 }

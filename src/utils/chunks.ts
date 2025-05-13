@@ -1,5 +1,6 @@
+import { ChunkName, FilePath, pageEntryPath, PageRoot } from '../types';
 import { getFileNameWithoutExt } from './file';
-import { SubPackageInfo } from './parse-subpackage';
+import { PageInfo, SubPackageInfo } from './parse-subpackage';
 
 /**
  * 判断一个文件是不是子包中的公共模块 chunk
@@ -9,9 +10,9 @@ import { SubPackageInfo } from './parse-subpackage';
  * @returns 当前文件是否是子包中的公共模块
  */
 export function isSubpackageChunkFile(
-  chunkPageMap: Map<string, string[]>,
+  chunkPageMap: Map<ChunkName, PageRoot[]>,
   subPackagesInfoList: SubPackageInfo[],
-  fileName: string,
+  fileName: FilePath | ChunkName,
 ) {
   const chunkNameList = [...chunkPageMap.keys()];
 
@@ -22,9 +23,25 @@ export function isSubpackageChunkFile(
   });
 }
 
-export function isSubPackageEntry(fileName: string, subPackagesInfoList: SubPackageInfo[]) {
+/**
+ * 判断一个文件是不是子包中页面的入口文件
+ * @param fileName 
+ * @param subPackagesInfoList 
+ * @returns 
+ */
+export function isSubPackagePageEntry(fileName: FilePath, subPackagesInfoList: SubPackageInfo[]) {
   const targetName = getFileNameWithoutExt(fileName);
   return subPackagesInfoList.some((subPackageInfo) => subPackageInfo.pages.some((page) => page.includes(targetName)));
+}
+
+/**
+ * 判断一个页面是不是主包中的页面
+ * @param pageRoot 
+ * @param mainPageInfoList 
+ * @returns 
+ */
+export function isMainPackagePage(pageRoot: PageRoot, mainPageInfoList: PageInfo[]) {
+  return mainPageInfoList.some((page) => page.root === pageRoot);
 }
 
 /**
@@ -42,8 +59,8 @@ export function isSubPackageEntry(fileName: string, subPackagesInfoList: SubPack
       'pages/dog/snoopy/snoopy'
     ]
  */
-export function getSubPackageEntryFileNameMap(pageList: string[], subPackagesInfoList: SubPackageInfo[]) {
-  const pageRootEntryMap = new Map<string, string[]>();
+export function getSubPackageEntryFileNameMap(pageList: PageRoot[], subPackagesInfoList: SubPackageInfo[]) {
+  const pageRootEntryMap = new Map<PageRoot, pageEntryPath[]>();
   subPackagesInfoList.forEach((subPackagesInfo) => {
     subPackagesInfo.pages.forEach((pageEntryPath) => {
       pageList.forEach((pageRootPath) => {
@@ -65,7 +82,7 @@ export function getSubPackageEntryFileNameMap(pageList: string[], subPackagesInf
  * @param filePath 需要导入子包公共模块的文件的绝对路径
  * @returns 返回 filePath 对应文件导入子包页面公共模块时，require 语句中需要的相对路径
  */
-export function getRelativeImportPath(subPackageRoot: string, chunkName: string, filePath: string | null) {
+export function getRelativeImportPath(subPackageRoot: PageRoot, chunkName: ChunkName, filePath: FilePath | null) {
   if (!filePath) return;
   const chunkPathInPageRoot = filePath.split(subPackageRoot)[1];
   if (!chunkPathInPageRoot) return;
@@ -79,7 +96,7 @@ export function getRelativeImportPath(subPackageRoot: string, chunkName: string,
  * @param subPackagesInfoList 子包配置信息
  * @returns 子包根目录路径，如 'pages/dog'
  */
-export function getSubPackageRootFromFileName(fileName: string, subPackagesInfoList: SubPackageInfo[]) {
+export function getSubPackageRootFromFileName(fileName: FilePath, subPackagesInfoList: SubPackageInfo[]) {
   return subPackagesInfoList.find((subPackage) => fileName.includes(subPackage.root))?.root;
 }
 
@@ -90,7 +107,7 @@ export function getSubPackageRootFromFileName(fileName: string, subPackagesInfoL
  * @param wxssChunkName 公共样式文件名（包含 .wxss 拓展名）
  * @returns 返回 entryWxssPath 对应文件导入子包公共样式文件时，@import 语句中需要的相对路径
  */
-export function getRelativeImportWxssPath(pageRoot: string, entryWxssPath: string, wxssChunkName: string) {
+export function getRelativeImportWxssPath(pageRoot: PageRoot, entryWxssPath: FilePath, wxssChunkName: FilePath) {
   const chunkPathInPageRoot = entryWxssPath.split(pageRoot)[1];
   if (!chunkPathInPageRoot) return;
   const relativeImportWxssPath = `${getRelativeLevelPath(chunkPathInPageRoot)}${wxssChunkName}`;

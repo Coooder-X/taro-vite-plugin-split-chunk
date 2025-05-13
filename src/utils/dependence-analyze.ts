@@ -3,29 +3,31 @@ import { inspect } from 'util';
 import { cloneDeep } from 'lodash';
 import { inspectOptions, logger } from './logger';
 import { PageInfo, parseSubpackage, SubPackageInfo } from './parse-subpackage';
+import { ChunkName, ModuleId, PageId, PageRoot } from '../types';
+import { isMainPackagePage } from './chunks';
 
 export interface ChunksInfo {
-  subChunkMap: Map<string, string>;
-  pageIdMap: Map<string, string>;
-  idPageMap: Map<string, string>;
-  chunkPageMap: Map<string, string[]>;
+  subChunkMap: Map<ModuleId, ChunkName>;
+  pageIdMap: Map<PageRoot, PageId>;
+  idPageMap: Map<PageId, PageRoot>;
+  chunkPageMap: Map<ChunkName, PageRoot[]>;
   subPackagesInfoList: SubPackageInfo[];
 }
 
 class DependencyAnalyzer {
   // 存储页面的文件夹名称（子包名）到页面id的映射 Map<pageid: string, id: string>
-  private pageIdMap = new Map<string, string>();
-  private idPageMap = new Map<string, string>();
+  private pageIdMap = new Map<PageRoot, PageId>();
+  private idPageMap = new Map<PageId, PageRoot>();
   // 存储一个文件被页面依赖的情况 key：moduleId, value：{importers：该模块被哪些模块依赖, pageImporters：该模块被哪些页面依赖}>
-  private depMap = new Map<string, { importers: Set<string>; pageImporters: Set<string> }>();
+  private depMap = new Map<ModuleId, { importers: Set<ModuleId>; pageImporters: Set<ModuleId> }>();
   // 存储文件到 chunk 的映射 key：moduleId，value：chunkName，如 'page1_page2'、'page3'
-  private subChunkMap = new Map<string, string>();
-  // 存储 chunk 到页面的映射 key：chunkName，value：pageNames，如：'page2' => [ 'pages/dog' ],
-  private chunkPageMap = new Map<string, string[]>();
+  private subChunkMap = new Map<ModuleId, ChunkName>();
+  // 存储 chunk 到页面的映射 key：chunkName，value：pageNames，如：'page2' => [ 'pages/dog' ]
+  private chunkPageMap = new Map<ChunkName, PageRoot[]>();
   // 存储所有页面模块的 moduleId
-  private pageModuleIds: string[];
+  private pageModuleIds: ModuleId[];
   // 存储一个 module 依赖其他 module 的情况。key：moduleId，value：该 module 依赖的其他 module 的 id
-  private idImportedMap: Map<string, string[]> = new Map();
+  private idImportedMap: Map<ModuleId, ModuleId[]> = new Map();
   // 所有页面信息数组
   private pageInfoList: PageInfo[];
   // 主包中包含的页面信息
@@ -33,9 +35,9 @@ class DependencyAnalyzer {
   // 子包中包含的页面信息
   private subPackagesInfoList: SubPackageInfo[];
   // 主包以及子包的根目录路径（当一个子包目录中包含多个页面时，subPackagesInfoList 的 root 中会包含重复的处于一个目录中的不同页面，导致分出多余的页面）
-  private pageRootList: string[];
+  private pageRootList: PageRoot[];
 
-  constructor(idImportedMap: Map<string, string[]>, appConfig: AppConfig) {
+  constructor(idImportedMap: Map<ModuleId, ModuleId[]>, appConfig: AppConfig) {
     const { pageInfoList, subPackagesInfoList, mainPageInfoList, pageRootList } = parseSubpackage(appConfig);
     this.pageInfoList = pageInfoList;
     this.pageRootList = pageRootList;
@@ -64,11 +66,11 @@ class DependencyAnalyzer {
     };
   }
 
-  private isPageIndexModule(moduleId: string) {
+  private isPageIndexModule(moduleId: ModuleId) {
     return this.pageInfoList.some((pageInfo) => moduleId.includes(pageInfo.page));
   }
 
-  private isFirstPageModule(moduleId: string) {
+  private isFirstPageModule(moduleId: ModuleId) {
     return this.mainPageInfoList.some((pageInfo) => moduleId.includes(pageInfo.page));
   }
 
@@ -79,11 +81,11 @@ class DependencyAnalyzer {
   /**
    * 计算一个文件的依赖者和依赖它的页面
    */
-  private dfs(pageModuleId: string, fatherModuleId: string, curModuleId: string) {
+  private dfs(pageModuleId: ModuleId, fatherModuleId: ModuleId, curModuleId: ModuleId) {
     if (!this.depMap.has(curModuleId)) {
       this.depMap.set(curModuleId, {
-        importers: new Set<string>(),
-        pageImporters: new Set<string>(),
+        importers: new Set<ModuleId>(),
+        pageImporters: new Set<ModuleId>(),
       });
     }
     const depInfo = this.depMap.get(curModuleId)!;
@@ -91,15 +93,15 @@ class DependencyAnalyzer {
 
     depInfo.pageImporters.add(pageModuleId);
     const fatherDepInfo = this.depMap.get(fatherModuleId);
-    const { importers: fatherImporters = new Set<string>() } = fatherDepInfo || {};
-    depInfo.importers = this.unionSet<string>(depInfo.importers, fatherImporters);
+    const { importers: fatherImporters = new Set<ModuleId>() } = fatherDepInfo || {};
+    depInfo.importers = this.unionSet<ModuleId>(depInfo.importers, fatherImporters);
 
     for (const id of this.idImportedMap.get(curModuleId) || []) {
       this.dfs(pageModuleId, curModuleId, id);
     }
   }
 
-  private getPageNameById(moduleId: string) {
+  private getPageNameById(moduleId: ModuleId) {
     for (const pageRoot of this.pageRootList) {
       // TODO: 优化,root可能只有pages
       if (moduleId.includes(pageRoot)) return pageRoot;
@@ -110,15 +112,16 @@ class DependencyAnalyzer {
   private getPagesNameMap() {
     const pageNames = this.pageRootList.map((item) => item).sort((a, b) => a.localeCompare(b));
     pageNames.forEach((item, index) => {
-      this.pageIdMap.set(item, `page${index + 1}`);
-      this.idPageMap.set(`page${index + 1}`, item);
+      const pageId = `page${index + 1}` as PageId;
+      this.pageIdMap.set(item, pageId);
+      this.idPageMap.set(pageId, item);
     });
     logger.info(`pageIdMap: ${inspect(this.pageIdMap, inspectOptions)}`, 'analyzeDep.getPagesNameMap');
   }
 
   private getSubChunkMap() {
     for (const [moduleId, { pageImporters }] of this.depMap) {
-      let pages: string[] = [];
+      let pages: PageRoot[] = [];
       for (const importerId of pageImporters) {
         const pageName = this.getPageNameById(importerId);
         if (!pageName) continue;
@@ -127,9 +130,9 @@ class DependencyAnalyzer {
       // 有可能这个module是node modules 中的依赖，或者是app.ts等，不被page引用
       if (!pages.length) continue;
       // 被首页引用的不参与打入子包的逻辑
-      if (pages.includes('index')) continue;
+      if (pages.some(page => isMainPackagePage(page, this.mainPageInfoList))) continue;
       pages = [...new Set(pages)].sort();
-      const chunkName = pages.map((item) => this.pageIdMap.get(item)).join('_');
+      const chunkName = pages.map((item) => this.pageIdMap.get(item)).join('_') as ChunkName;
       this.chunkPageMap.set(chunkName, pages);
       this.subChunkMap.set(moduleId, chunkName);
     }
@@ -178,7 +181,7 @@ class DependencyAnalyzer {
   }
 }
 
-export function analyzeDep(idImportedMap: Map<string, string[]>, appConfig: AppConfig): ChunksInfo {
+export function analyzeDep(idImportedMap: Map<ModuleId, ModuleId[]>, appConfig: AppConfig): ChunksInfo {
   const analyzer = new DependencyAnalyzer(idImportedMap, appConfig);
   return analyzer.analyze();
 }

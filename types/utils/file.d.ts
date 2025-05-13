@@ -1,1 +1,2 @@
-export declare function getFileNameWithoutExt(fileName: string): string;
+import { FilePath } from '../types';
+export declare function getFileNameWithoutExt<T = string>(fileName: FilePath): T;

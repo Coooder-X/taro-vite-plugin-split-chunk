@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getFileNameWithoutExt } from './file';
 import { logger } from './logger';
+import { FilePath } from '../types';
 
 /**
  * 【背景】：
@@ -19,7 +20,7 @@ export class TempFileManager {
 
   public constructor(appConfigPath: string) {
     this.appConfigPath = appConfigPath;
-    const fileName = path.basename(appConfigPath);
+    const fileName = path.basename(appConfigPath) as FilePath;
     const targetName = getFileNameWithoutExt(fileName);
     this.tmpAppConfigPath = path.join(__dirname, fileName.replace(targetName, `tmp-${targetName}`));
   }

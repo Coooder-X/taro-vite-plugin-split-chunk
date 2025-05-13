@@ -17,12 +17,13 @@ import {
   getRelativeImportWxssPath,
   getSubPackageEntryFileNameMap,
   isSubpackageChunkFile,
-  isSubPackageEntry,
+  isSubPackagePageEntry,
 } from './utils/chunks';
 import { analyzeDep, ChunksInfo } from './utils/dependence-analyze';
 import { TempFileManager } from './utils/temp-file-manager';
 import { logger, inspectOptions } from './utils/logger';
 import { getFileNameWithoutExt } from './utils/file';
+import { ChunkName, FilePath, ModuleId } from './types';
 
 export interface ViteSplitChunkPluginProps {
   appConfigPath: string;
@@ -32,7 +33,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
   let chunkContext: ChunksInfo = {} as any;
   let appConfig: AppConfig | null = null;
   let originManualChunks: GetManualChunk | null = null;
-  const idImportedMap: Map<string, string[]> = new Map();
+  const idImportedMap: Map<ModuleId, ModuleId[]> = new Map();
   let tempFileManager: TempFileManager | null = null;
 
   return {
@@ -65,7 +66,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
     /** 收集每个模块的依赖关系 */
     moduleParsed(moduleInfo: ModuleInfo) {
       const { id, importedIds } = moduleInfo;
-      idImportedMap.set(id, [...importedIds]);
+      idImportedMap.set(id as ModuleId, [...importedIds as ModuleId[]]);
     },
 
     /** build 结束后，依赖收集完成，可以根据依赖图做依赖分析 */
@@ -84,13 +85,13 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         logger.error('依赖分析失败', 'outputOptions');
         return outputOptions;
       }
-      const { subChunkMap = new Map<string, string>() } = chunkContext;
+      const { subChunkMap = new Map<ModuleId, ChunkName>() } = chunkContext;
 
       if (!originManualChunks) {
         originManualChunks = outputOptions.manualChunks as GetManualChunk;
       }
 
-      const getManualChunkAlias = (moduleId: string, manualChunksApi: ManualChunkMeta) => {
+      const getManualChunkAlias = (moduleId: ModuleId, manualChunksApi: ManualChunkMeta) => {
         const chunk = subChunkMap.get(moduleId);
         if (!chunk) return originManualChunks!(moduleId, manualChunksApi);
         return chunk;
@@ -108,7 +109,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
     },
 
     renderChunk(code: string, chunk: RenderedChunk) {
-      const { fileName } = chunk;
+      const fileName = chunk.fileName as FilePath;
       const { chunkPageMap, subPackagesInfoList } = chunkContext;
       const chunkNameList = [...chunkPageMap.keys()];
       // 修改仅被子包依赖的 chunk 代码中对主包公共代码的引用路径
@@ -126,11 +127,11 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
       }
 
       // 修改所有依赖了子包 chunk 的 js 文件代码中对 chunk 的引用路径(若未被配置为子包，则打出的 chunk 放在主包中，引用路径不修改)
-      if (isSubPackageEntry(fileName, subPackagesInfoList)) {
+      if (isSubPackagePageEntry(fileName, subPackagesInfoList)) {
         const newCode = chunkNameList.reduce((accCode, chunkName) => {
           const subPackageRoot = getSubPackageRootFromFileName(fileName, subPackagesInfoList);
           if (!subPackageRoot) return  accCode;
-          const relativeImportPath = getRelativeImportPath(subPackageRoot, chunkName, chunk.facadeModuleId);
+          const relativeImportPath = getRelativeImportPath(subPackageRoot, chunkName, chunk.facadeModuleId as FilePath | null);
           if (!relativeImportPath) return accCode;
 
           if (
@@ -169,23 +170,24 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
       logger.success(`generateBundle hook 执行完成`, 'generateBundle');
       const { chunkPageMap, subPackagesInfoList } = chunkContext;
 
-      for (const [chunkName, file] of Object.entries(bundle)) {
-        const targetName = getFileNameWithoutExt(chunkName);
+      for (const [chunkFilePath, file] of Object.entries(bundle)) {
+        const chunkPath = chunkFilePath as FilePath;
+        const chunkName = getFileNameWithoutExt<ChunkName>(chunkPath);
         // 如果文件是一个 chunk，且仅被子包依赖，则应当输出到子包的 pages 中
-        if (!isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, chunkName)) continue;
+        if (!isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, chunkPath)) continue;
 
-        const outputPages = chunkPageMap.get(targetName)!;
+        const outputPages = chunkPageMap.get(chunkName)!;
         if (!outputPages) return;
 
         for (const outputDir of outputPages) {
-          const newChunkName = `${outputDir}/${file.fileName}`;
-          logger.info(`将原 chunk ${chunkName} 输出到 ${newChunkName}`, 'generateBundle');
+          const newChunkPath = `${outputDir}/${file.fileName}`;
+          logger.info(`将原 chunk ${chunkPath} 输出到 ${newChunkPath}`, 'generateBundle');
 
-          bundle[newChunkName] = {
+          bundle[newChunkPath] = {
             ...file,
-            fileName: newChunkName,
+            fileName: newChunkPath,
           };
-          delete bundle[chunkName];
+          delete bundle[chunkPath];
         }
       }
     },
@@ -198,15 +200,15 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
       const { chunkPageMap, subPackagesInfoList } = chunkContext;
 
       for (const [, file] of Object.entries(bundle)) {
-        const fileName = path.basename(file.fileName);
+        const fileName = path.basename(file.fileName) as FilePath;
         const isWxssChunk =
           file.type === 'asset' &&
           path.extname(fileName) === '.wxss' &&
           isSubpackageChunkFile(chunkPageMap, subPackagesInfoList, fileName);
         if (!isWxssChunk) continue;
 
-        const targetName = getFileNameWithoutExt(fileName);
-        const pageList = chunkPageMap.get(targetName);
+        const chunkName = getFileNameWithoutExt<ChunkName>(fileName);
+        const pageList = chunkPageMap.get(chunkName);
         if (!pageList) continue;
 
         const subPackageEntryFileNameMap = getSubPackageEntryFileNameMap(pageList, subPackagesInfoList);
@@ -216,7 +218,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
           const entryFileList = subPackageEntryFileNameMap.get(pageName) || [];
           entryFileList.forEach((entryName) => {
             // 需要引用公共样式文件的 wxss 文件的路径
-            const pageWxssPath = `${distPath}/${entryName}.wxss`;
+            const pageWxssPath = `${distPath}/${entryName}.wxss` as FilePath;
             const relativeImportWxssPath = getRelativeImportWxssPath(pageName, pageWxssPath, fileName);
             if (!relativeImportWxssPath) return;
 

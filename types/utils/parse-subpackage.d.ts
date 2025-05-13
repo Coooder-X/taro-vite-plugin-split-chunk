@@ -1,21 +1,19 @@
 import { AppConfig } from '@tarojs/taro';
+import { pageEntryPath, PageRoot } from '../types';
 export interface PageInfo {
-    root: string;
-    page: string;
+    root: PageRoot;
+    page: pageEntryPath;
 }
 export interface SubPackageInfo {
-    root: string;
-    pages: string[];
+    root: PageRoot;
+    pages: pageEntryPath[];
 }
 export declare function parseSubpackage(appConfig: AppConfig): {
     pageInfoList: PageInfo[];
-    pageRootList: string[];
+    pageRootList: PageRoot[];
     subPackagesInfoList: {
-        root: string;
-        pages: string[];
+        root: PageRoot;
+        pages: pageEntryPath[];
     }[];
-    mainPageInfoList: {
-        page: string;
-        root: string;
-    }[];
+    mainPageInfoList: PageInfo[];
 };
