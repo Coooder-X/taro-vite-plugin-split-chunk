@@ -16,7 +16,7 @@ export type PageId = Branded<string, "PageId">;
 export type PageRoot = Branded<string, "PageRoot">;
 
 // 页面的入口文件路径，不包含文件后缀名，如 pages/dog/index、pages/dog/beagle/beagle
-export type pageEntryPath = Branded<string, "pageEntryPath">;
+export type PageEntryPath = Branded<string, "PageEntryPath">;
 
 // 文件路径，包含文件后缀名，如 pages/dog/index.js
 export type FilePath = Branded<string, "FilePath">;

@@ -1,4 +1,4 @@
-import { ChunkName, FilePath, pageEntryPath, PageRoot } from '../types';
+import { ChunkName, FilePath, PageEntryPath, PageRoot } from '../types';
 import { PageInfo, SubPackageInfo } from './parse-subpackage';
 /**
  * 判断一个文件是不是子包中的公共模块 chunk
@@ -37,7 +37,7 @@ export declare function isMainPackagePage(pageRoot: PageRoot, mainPageInfoList: 
       'pages/dog/snoopy/snoopy'
     ]
  */
-export declare function getSubPackageEntryFileNameMap(pageList: PageRoot[], subPackagesInfoList: SubPackageInfo[]): Map<PageRoot, pageEntryPath[]>;
+export declare function getSubPackageEntryFileNameMap(pageList: PageRoot[], subPackagesInfoList: SubPackageInfo[]): Map<PageRoot, PageEntryPath[]>;
 /**
  * 分包后，页面子包公共模块位于页面根目录下。页面目录下的所有 js 文件需要更新对该公共模块引用的相对路径，该路径由此函数计算
  * @param subPackageRoot 子包根目录路径，如 'pages/dog'

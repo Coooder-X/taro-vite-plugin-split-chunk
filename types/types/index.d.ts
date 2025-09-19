@@ -7,6 +7,6 @@ export type ModuleId = Branded<string, "ModuleId">;
 export type ChunkName = Branded<string, "ChunkName">;
 export type PageId = Branded<string, "PageId">;
 export type PageRoot = Branded<string, "PageRoot">;
-export type pageEntryPath = Branded<string, "pageEntryPath">;
+export type PageEntryPath = Branded<string, "PageEntryPath">;
 export type FilePath = Branded<string, "FilePath">;
 export {};

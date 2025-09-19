@@ -1,14 +1,14 @@
 import { AppConfig } from '@tarojs/taro';
-import { pageEntryPath, PageRoot } from '../types';
+import { PageEntryPath, PageRoot } from '../types';
 
 export interface PageInfo {
   root: PageRoot;
-  page: pageEntryPath;
+  page: PageEntryPath;
 }
 
 export interface SubPackageInfo {
   root: PageRoot;
-  pages: pageEntryPath[];
+  pages: PageEntryPath[];
 }
 
 export function parseSubpackage(appConfig: AppConfig) {
@@ -18,12 +18,12 @@ export function parseSubpackage(appConfig: AppConfig) {
     (sub) =>
       ({
         root: sub.root as PageRoot,
-        pages: sub.pages.map((item) => `${sub.root}/${item}` as pageEntryPath),
+        pages: sub.pages.map((item) => `${sub.root}/${item}` as PageEntryPath),
       }) satisfies SubPackageInfo,
   );
 
   const mainPageInfoList: PageInfo[] =
-    appConfig.pages?.map((page: pageEntryPath) => ({
+    appConfig.pages?.map((page: PageEntryPath) => ({
       page,
       root: getFatherRoot(page),
     })) || [];
@@ -47,6 +47,6 @@ export function parseSubpackage(appConfig: AppConfig) {
   };
 }
 
-function getFatherRoot(page: pageEntryPath): PageRoot {
+function getFatherRoot(page: PageEntryPath): PageRoot {
   return page.split('/').slice(0, -1).join('/') as PageRoot;
 }

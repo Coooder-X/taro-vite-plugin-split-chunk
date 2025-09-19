@@ -1,4 +1,4 @@
-import { ChunkName, FilePath, pageEntryPath, PageRoot } from '../types';
+import { ChunkName, FilePath, PageEntryPath, PageRoot } from '../types';
 import { getFileNameWithoutExt } from './file';
 import { PageInfo, SubPackageInfo } from './parse-subpackage';
 
@@ -60,7 +60,7 @@ export function isMainPackagePage(pageRoot: PageRoot, mainPageInfoList: PageInfo
     ]
  */
 export function getSubPackageEntryFileNameMap(pageList: PageRoot[], subPackagesInfoList: SubPackageInfo[]) {
-  const pageRootEntryMap = new Map<PageRoot, pageEntryPath[]>();
+  const pageRootEntryMap = new Map<PageRoot, PageEntryPath[]>();
   subPackagesInfoList.forEach((subPackagesInfo) => {
     subPackagesInfo.pages.forEach((pageEntryPath) => {
       pageList.forEach((pageRootPath) => {
