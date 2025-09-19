@@ -1,0 +1,32 @@
+{
+  "extends": ["taro/vue3"],
+  "parserOptions": {
+    "requireConfigFile": false
+  },
+  "rules": {
+    "vue/multi-word-component-names": "off",
+    "semi": ["error", "always"],
+    "semi-spacing": ["error", { "before": false, "after": true }],
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1, "maxBOF": 0 }],
+    "no-trailing-spaces": "error",
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "space-before-blocks": ["error", "always"],
+    "space-before-function-paren": ["error", { "anonymous": "always", "named": "never", "asyncArrow": "always" }],
+    "keyword-spacing": ["error", { "before": true, "after": true }],
+    "eqeqeq": ["error", "always"],
+    "no-debugger": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "object-shorthand": "error",
+    "arrow-parens": ["error", "always"]
+  },
+  "overrides": [
+    {
+      "files": ["*.d.ts"],
+      "rules": {
+        "semi": "off"
+      }
+    }
+  ]
+}
