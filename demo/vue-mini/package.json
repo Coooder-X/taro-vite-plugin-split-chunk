@@ -59,7 +59,7 @@
     "@tarojs/taro": "4.0.10",
     "d3": "^7.9.0",
     "lodash": "^4.17.21",
-    "three": "^0.180.0",
+    "echarts": "^6.0.0",
     "vue": "^3.3.0"
   },
   "devDependencies": {
@@ -68,7 +68,6 @@
     "@babel/traverse": "7.27.0",
     "@tarojs/cli": "4.0.10",
     "@tarojs/vite-runner": "4.0.10",
-    "@types/three": "^0.180.0",
     "@vitejs/plugin-vue": "^4.6.0",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
     "@vue/babel-plugin-jsx": "^1.1.5",
