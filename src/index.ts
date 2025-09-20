@@ -73,7 +73,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
     buildEnd() {
       logger.info('buildEnd', 'buildEnd');
       if (!appConfig) {
-        logger.error('appConfig 不存在', 'options');
+        logger.error('appConfig 不存在', 'buildEnd');
         return;
       }
       chunkContext = analyzeDep(idImportedMap, appConfig);
@@ -97,7 +97,8 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         return chunk;
       };
 
-      const useSourceMap = process.env.NODE_ENV === 'development' ? true : false; // 生成 .js.map 文件，保证dev下断点调试
+      // 生成 .js.map 文件，保证dev下断点调试
+      const useSourceMap = process.env.NODE_ENV === 'development' ? true : false;
 
       const newOutputOptions = {
         ...outputOptions,
@@ -118,7 +119,10 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         const newCode = code
           .replaceAll("require('./taro.js')", "require('../../taro.js')")
           .replaceAll("require('./common.js')", "require('../../common.js')")
-          .replaceAll("require('./vendors.js')", "require('../../vendors.js')");
+          .replaceAll("require('./vendors.js')", "require('../../vendors.js')")
+          .replaceAll("require(\"./taro.js\")", "require('../../taro.js')")
+          .replaceAll("require(\"./common.js\")", "require('../../common.js')")
+          .replaceAll("require(\"./vendors.js\")", "require('../../vendors.js')");
 
         if (code === newCode) return { code, map: null };
 
@@ -130,7 +134,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
       if (isSubPackagePageEntry(fileName, subPackagesInfoList)) {
         const newCode = chunkNameList.reduce((accCode, chunkName) => {
           const subPackageRoot = getSubPackageRootFromFileName(fileName, subPackagesInfoList);
-          if (!subPackageRoot) return  accCode;
+          if (!subPackageRoot) return accCode;
           const relativeImportPath = getRelativeImportPath(subPackageRoot, chunkName, chunk.facadeModuleId as FilePath | null);
           if (!relativeImportPath) return accCode;
 

@@ -1,5 +1,5 @@
 import { ChunkName, FilePath, PageEntryPath, PageRoot } from '../types';
-import { getFileNameWithoutExt } from './file';
+import { getFileNameWithoutExt, normalizePath, pathIncludes } from './file';
 import { PageInfo, SubPackageInfo } from './parse-subpackage';
 
 /**
@@ -84,7 +84,12 @@ export function getSubPackageEntryFileNameMap(pageList: PageRoot[], subPackagesI
  */
 export function getRelativeImportPath(subPackageRoot: PageRoot, chunkName: ChunkName, filePath: FilePath | null) {
   if (!filePath) return;
-  const chunkPathInPageRoot = filePath.split(subPackageRoot)[1];
+
+  // 标准化路径进行比较和分割
+  const normalizedFilePath = normalizePath(filePath);
+  const normalizedSubPackageRoot = normalizePath(subPackageRoot);
+
+  const chunkPathInPageRoot = normalizedFilePath.split(normalizedSubPackageRoot)[1];
   if (!chunkPathInPageRoot) return;
   const relativeImportPath = `${getRelativeLevelPath(chunkPathInPageRoot)}${chunkName}.js`;
   return relativeImportPath;
@@ -97,7 +102,7 @@ export function getRelativeImportPath(subPackageRoot: PageRoot, chunkName: Chunk
  * @returns 子包根目录路径，如 'pages/dog'
  */
 export function getSubPackageRootFromFileName(fileName: FilePath, subPackagesInfoList: SubPackageInfo[]) {
-  return subPackagesInfoList.find((subPackage) => fileName.includes(subPackage.root))?.root;
+  return subPackagesInfoList.find((subPackage) => pathIncludes(fileName, subPackage.root))?.root;
 }
 
 /**
@@ -108,7 +113,11 @@ export function getSubPackageRootFromFileName(fileName: FilePath, subPackagesInf
  * @returns 返回 entryWxssPath 对应文件导入子包公共样式文件时，@import 语句中需要的相对路径
  */
 export function getRelativeImportWxssPath(pageRoot: PageRoot, entryWxssPath: FilePath, wxssChunkName: FilePath) {
-  const chunkPathInPageRoot = entryWxssPath.split(pageRoot)[1];
+  // 标准化路径进行比较和分割
+  const normalizedEntryWxssPath = normalizePath(entryWxssPath);
+  const normalizedPageRoot = normalizePath(pageRoot);
+
+  const chunkPathInPageRoot = normalizedEntryWxssPath.split(normalizedPageRoot)[1];
   if (!chunkPathInPageRoot) return;
   const relativeImportWxssPath = `${getRelativeLevelPath(chunkPathInPageRoot)}${wxssChunkName}`;
   return relativeImportWxssPath;
@@ -120,6 +129,7 @@ export function getRelativeImportWxssPath(pageRoot: PageRoot, entryWxssPath: Fil
  * @returns 一个文件要引用一个位于其所在页面根目录中的文件时，引用语句的相对路径前缀。如 ./ 或 ../ 或 ../../ 等
  */
 export function getRelativeLevelPath(chunkPathInPageRoot: string) {
+  // 始终使用正斜杠分割，因为这里处理的是标准化后的路径
   const levelList = chunkPathInPageRoot.split('/').filter(Boolean);
   if (levelList.length === 0 || levelList.length === 1) return './';
   return '../'.repeat(levelList.length - 1);

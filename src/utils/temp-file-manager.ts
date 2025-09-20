@@ -10,8 +10,8 @@ import { logger } from './logger';
  * defineAppConfig & definePageConfig 是宏函数，它主要用于类型提示和自动补全。 在编译时会提取config部分生成单独的配置文件，它并不是运行时可用的函数。该函数的类型定义在 node_modules/@tarojs/taro/types/index.d.ts
  * 然而，插件在通过 import 获取 app.config.ts 配置时无法理解 defineAppConfig 函数，会报未定义的错误，可见相关 issue：https://github.com/NervJS/taro/issues/11949
  * 【解决方案】：
- * 1、创建一个临时的 tmp-app.config.ts 文件，其配置与原 app.config 相同，区别在于删除了 defineAppConfig 的包裹，使得插件能够正常读取配置。
- * 2、需要读取配置时，从临时的 tmp-app.config.ts 中读取
+ * 1、创建一个临时的 tmp-app.config.js 文件，其配置与原 app.config 相同，区别在于删除了 defineAppConfig 的包裹，并且将 export default 转换为 module.exports，使得插件能够正常读取配置。
+ * 2、需要读取配置时，从临时的 tmp-app.config.js 中读取
  * 3、插件运行结束后，删除临时配置文件
  */
 export class TempFileManager {
@@ -22,14 +22,19 @@ export class TempFileManager {
     this.appConfigPath = appConfigPath;
     const fileName = path.basename(appConfigPath) as FilePath;
     const targetName = getFileNameWithoutExt(fileName);
-    this.tmpAppConfigPath = path.join(__dirname, fileName.replace(targetName, `tmp-${targetName}`));
+    this.tmpAppConfigPath = path.join(__dirname, `tmp-${targetName}.js`);
   }
 
   public createTmpAppConfig() {
     if (!this.tmpAppConfigPath) return;
 
     const appConfigCode = fs.readFileSync(this.appConfigPath, 'utf8');
-    const newCode = appConfigCode.replace(/defineAppConfig\((\{[\s\S]*\})\)/, '$1').replace(/definePageConfig\((\{[\s\S]*\})\)/, '$1');
+    // 移除 defineAppConfig 包装并转换为 CommonJS 格式
+    let newCode = appConfigCode.replace(/defineAppConfig\((\{[\s\S]*\})\)/, '$1').replace(/definePageConfig\((\{[\s\S]*\})\)/, '$1');
+
+    // 将 export default 转换为 module.exports
+    newCode = newCode.replace(/export\s+default\s+/, 'module.exports = ');
+
     fs.writeFileSync(this.tmpAppConfigPath, newCode, 'utf8');
     logger.success(`创建临时 app.config 配置文件 ${this.tmpAppConfigPath}`, 'TempFileManager.createTmpAppConfig');
   }
@@ -41,6 +46,7 @@ export class TempFileManager {
   }
 
   public async getAppConfig() {
-    return (await import(this.tmpAppConfigPath)).default;
+    delete require.cache[require.resolve(this.tmpAppConfigPath)];
+    return require(this.tmpAppConfigPath);
   }
 }
