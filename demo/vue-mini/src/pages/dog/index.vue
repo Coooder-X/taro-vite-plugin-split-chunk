@@ -10,7 +10,6 @@
 <script setup lang="ts">
 import { useLoad } from '@tarojs/taro';
 import Taro from '@tarojs/taro';
-import * as d3 from 'd3';
 import * as lodash from 'lodash';
 import './index.scss';
 import Beagle from './beagle/beagle.vue';
@@ -19,7 +18,6 @@ useLoad(() => {
   console.log('Page loaded.');
 });
 
-console.log(d3);
 console.log(lodash);
 
 const handleNavigate = (url: string) => {
@@ -31,7 +29,6 @@ const handleNavigate = (url: string) => {
   });
 };
 
-console.log(lodash.debounce);
 </script>
 
 <style lang="scss">

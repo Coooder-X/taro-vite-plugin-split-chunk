@@ -6,14 +6,14 @@
 
 <script setup lang="ts">
 import { useLoad } from '@tarojs/taro';
-import * as three from 'three';
+import * as echarts from 'echarts';
 import './index.scss';
 
 useLoad(() => {
   console.log('Page loaded.');
 });
 
-console.log(three.Vector2);
+console.log(echarts);
 </script>
 
 <style lang="scss">
