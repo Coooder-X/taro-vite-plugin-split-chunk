@@ -5,6 +5,7 @@ import { ChunkName, ModuleId, PageId, PageRoot } from '../types';
 import { isMainPackagePage } from './chunks';
 import { inspectOptions, logger } from './logger';
 import { PageInfo, parseSubpackage, SubPackageInfo } from './parse-subpackage';
+import { pathIncludes } from './file';
 
 export interface ChunksInfo {
   subChunkMap: Map<ModuleId, ChunkName>;
@@ -67,11 +68,11 @@ class DependencyAnalyzer {
   }
 
   private isPageIndexModule(moduleId: ModuleId) {
-    return this.pageInfoList.some((pageInfo) => moduleId.includes(pageInfo.page));
+    return this.pageInfoList.some((pageInfo) => pathIncludes(moduleId, pageInfo.page));
   }
 
   private isFirstPageModule(moduleId: ModuleId) {
-    return this.mainPageInfoList.some((pageInfo) => moduleId.includes(pageInfo.page));
+    return this.mainPageInfoList.some((pageInfo) => pathIncludes(moduleId, pageInfo.page));
   }
 
   private unionSet<T = string>(set1: Set<T>, set2: Set<T>) {

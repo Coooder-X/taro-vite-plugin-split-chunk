@@ -1,5 +1,6 @@
 import { AppConfig } from '@tarojs/taro';
 import { PageEntryPath, PageRoot } from '../types';
+import { normalizePath } from './file';
 
 export interface PageInfo {
   root: PageRoot;
@@ -18,6 +19,7 @@ export function parseSubpackage(appConfig: AppConfig) {
     (sub) =>
       ({
         root: sub.root as PageRoot,
+        // 保持正斜杠格式，符合小程序规范
         pages: sub.pages.map((item) => `${sub.root}/${item}` as PageEntryPath),
       }) satisfies SubPackageInfo,
   );
@@ -48,5 +50,7 @@ export function parseSubpackage(appConfig: AppConfig) {
 }
 
 function getFatherRoot(page: PageEntryPath): PageRoot {
-  return page.split('/').slice(0, -1).join('/') as PageRoot;
+  // 使用标准化路径进行分割，但结果仍保持正斜杠格式
+  const normalizedPage = normalizePath(page);
+  return normalizedPage.split('/').slice(0, -1).join('/') as PageRoot;
 }
