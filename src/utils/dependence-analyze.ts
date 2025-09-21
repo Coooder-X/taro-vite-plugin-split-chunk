@@ -6,6 +6,7 @@ import { isMainPackagePage } from './chunks';
 import { inspectOptions, logger } from './logger';
 import { PageInfo, parseSubpackage, SubPackageInfo } from './parse-subpackage';
 import { pathIncludes } from './file';
+import { generateChunkName } from './chunks';
 
 export interface ChunksInfo {
   subChunkMap: Map<ModuleId, ChunkName>;
@@ -37,8 +38,10 @@ class DependencyAnalyzer {
   private subPackagesInfoList: SubPackageInfo[];
   // 主包以及子包的根目录路径（当一个子包目录中包含多个页面时，subPackagesInfoList 的 root 中会包含重复的处于一个目录中的不同页面，导致分出多余的页面）
   private pageRootList: PageRoot[];
+  // 是否开启调试模式。当开启调试模式时，生成的 chunk 名称将使用页面 ID 的组合，而不是 MD5 哈希值，便于观察 chunk 被哪些页面依赖
+  private isDebug: boolean;
 
-  constructor(idImportedMap: Map<ModuleId, ModuleId[]>, appConfig: AppConfig) {
+  constructor(idImportedMap: Map<ModuleId, ModuleId[]>, appConfig: AppConfig, isDebug: boolean) {
     const { pageInfoList, subPackagesInfoList, mainPageInfoList, pageRootList } = parseSubpackage(appConfig);
     this.pageInfoList = pageInfoList;
     this.pageRootList = pageRootList;
@@ -47,6 +50,7 @@ class DependencyAnalyzer {
     this.idImportedMap = idImportedMap;
     const totalModuleIds = [...idImportedMap.keys()];
     this.pageModuleIds = totalModuleIds.filter((id) => this.isPageIndexModule(id));
+    this.isDebug = isDebug;
   }
 
   public analyze(): ChunksInfo {
@@ -117,7 +121,7 @@ class DependencyAnalyzer {
       this.pageIdMap.set(item, pageId);
       this.idPageMap.set(pageId, item);
     });
-    logger.info(`pageIdMap: ${inspect(this.pageIdMap, inspectOptions)}`, 'analyzeDep.getPagesNameMap');
+    this.isDebug && logger.info(`pageIdMap: ${inspect(this.pageIdMap, inspectOptions)}`, 'analyzeDep.getPagesNameMap');
   }
 
   private getSubChunkMap() {
@@ -134,11 +138,11 @@ class DependencyAnalyzer {
       // 被首页引用的不参与打入子包的逻辑
       if (pages.some((page) => isMainPackagePage(page, this.mainPageInfoList))) continue;
       pages = [...new Set(pages)].sort();
-      const chunkName = pages.map((item) => this.pageIdMap.get(item)).join('_') as ChunkName;
+      const chunkName = generateChunkName(pages, this.pageIdMap, this.isDebug);
       this.chunkPageMap.set(chunkName, pages);
       this.subChunkMap.set(moduleId, chunkName);
     }
-    logger.info(
+    this.isDebug && logger.info(
       `module 的打包去向：subChunkMap: ${inspect(this.subChunkMap, inspectOptions)}`,
       'analyzeDep.getSubChunkMap',
     );
@@ -169,7 +173,7 @@ class DependencyAnalyzer {
       }
     }
 
-    this.showDep();
+    this.isDebug && this.showDep();
     this.getPagesNameMap();
     this.getSubChunkMap();
   }
@@ -183,7 +187,7 @@ class DependencyAnalyzer {
   }
 }
 
-export function analyzeDep(idImportedMap: Map<ModuleId, ModuleId[]>, appConfig: AppConfig): ChunksInfo {
-  const analyzer = new DependencyAnalyzer(idImportedMap, appConfig);
+export function analyzeDep(idImportedMap: Map<ModuleId, ModuleId[]>, appConfig: AppConfig, isDebug: boolean): ChunksInfo {
+  const analyzer = new DependencyAnalyzer(idImportedMap, appConfig, isDebug);
   return analyzer.analyze();
 }

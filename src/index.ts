@@ -27,6 +27,7 @@ import { TempFileManager } from './utils/temp-file-manager';
 
 export interface ViteSplitChunkPluginProps {
   appConfigPath: string;
+  isDebug?: boolean;
 }
 
 export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
@@ -35,6 +36,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
   let originManualChunks: GetManualChunk | null = null;
   const idImportedMap: Map<ModuleId, ModuleId[]> = new Map();
   let tempFileManager: TempFileManager | null = null;
+  const { appConfigPath, isDebug = false } = props;
 
   return {
     name: 'vite-plugin-split-chunk',
@@ -44,18 +46,18 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
     },
 
     async options(options: InputOptions) {
-      tempFileManager = new TempFileManager(props.appConfigPath);
-      const appConfigPath = path.basename(props.appConfigPath);
+      tempFileManager = new TempFileManager(appConfigPath, isDebug);
+      const appConfigFileName = path.basename(appConfigPath);
       try {
         tempFileManager?.createTmpAppConfig();
         appConfig = await tempFileManager?.getAppConfig();
         if (!appConfig) {
-          logger.error(`加载 ${appConfigPath} 失败`, 'options');
+          logger.error(`加载 ${appConfigFileName} 失败`, 'options');
           return options;
         }
-        logger.info(`读取 ${appConfigPath} 成功`, 'options');
+        logger.success(`读取 ${appConfigFileName} 成功`, 'options');
       } catch (error) {
-        logger.error(`加载 ${appConfigPath} 失败: ${inspect(error, inspectOptions)}`, 'options');
+        logger.error(`加载 ${appConfigFileName} 失败: ${inspect(error, inspectOptions)}`, 'options');
       }
 
       return {
@@ -71,12 +73,11 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
     /** build 结束后，依赖收集完成，可以根据依赖图做依赖分析 */
     buildEnd() {
-      logger.info('buildEnd', 'buildEnd');
       if (!appConfig) {
         logger.error('appConfig 不存在', 'buildEnd');
         return;
       }
-      chunkContext = analyzeDep(idImportedMap, appConfig);
+      chunkContext = analyzeDep(idImportedMap, appConfig, isDebug);
       tempFileManager?.removeTmpAppConfig();
     },
 
@@ -126,7 +127,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
         if (code === newCode) return { code, map: null };
 
-        logger.success(`更新 chunk: ${fileName} 的依赖引用路径成功`, 'renderChunk');
+        isDebug && logger.success(`更新 chunk: ${fileName} 的依赖引用路径成功`, 'renderChunk');
         return { code: newCode, map: null };
       }
 
@@ -171,7 +172,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
      * 删除的旧键值对应均为 bundle[chunkName]。
      */
     generateBundle(_options: OutputOptions, bundle: OutputBundle) {
-      logger.success('generateBundle hook 执行完成', 'generateBundle');
+      isDebug && logger.success('generateBundle hook 执行完成', 'generateBundle');
       const { chunkPageMap, subPackagesInfoList } = chunkContext;
 
       for (const [chunkFilePath, file] of Object.entries(bundle)) {
@@ -185,7 +186,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
 
         for (const outputDir of outputPages) {
           const newChunkPath = `${outputDir}/${file.fileName}`;
-          logger.info(`将原 chunk ${chunkPath} 输出到 ${newChunkPath}`, 'generateBundle');
+          isDebug && logger.info(`将原 chunk ${chunkPath} 输出到 ${newChunkPath}`, 'generateBundle');
 
           bundle[newChunkPath] = {
             ...file,
@@ -232,7 +233,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
               // 第一次 build 后，引用语句已经存在，后续热更新不重复添加
               if (pageWxssCode.includes(importCode)) return;
               fs.writeFileSync(pageWxssPath, `${importCode}${pageWxssCode}`, 'utf8');
-              logger.success(`将 ${fileName} 链接到 ${entryName}.wxss`, 'writeBundle');
+              isDebug && logger.success(`将 ${fileName} 链接到 ${entryName}.wxss`, 'writeBundle');
             } catch (error) {
               logger.error(`将 ${fileName} 链接到 ${entryName}.wxss 时失败， ${error}`, 'writeBundle');
             }
@@ -241,7 +242,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
         delete bundle[fileName];
       }
 
-      logger.success('build finish', 'writeBundle');
+      logger.success('构建结束', 'writeBundle');
     },
   };
 }

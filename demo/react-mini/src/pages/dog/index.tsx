@@ -4,7 +4,7 @@ import { debounce } from 'lodash'
 import './index.scss'
 import Beagle from './beagle/beagle';
 
-export default function Dog () {
+export default function Dog() {
   useLoad(() => {
     console.log('Page loaded.')
   })

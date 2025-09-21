@@ -1,4 +1,5 @@
-import { ChunkName, FilePath, PageEntryPath, PageRoot } from '../types';
+import { createHash } from 'crypto';
+import { ChunkName, FilePath, PageEntryPath, PageId, PageRoot } from '../types';
 import { getFileNameWithoutExt, normalizePath, pathIncludes } from './file';
 import { PageInfo, SubPackageInfo } from './parse-subpackage';
 
@@ -133,4 +134,22 @@ export function getRelativeLevelPath(chunkPathInPageRoot: string) {
   const levelList = chunkPathInPageRoot.split('/').filter(Boolean);
   if (levelList.length === 0 || levelList.length === 1) return './';
   return '../'.repeat(levelList.length - 1);
+}
+
+/**
+ * 根据 chunk 的信息生成 chunk 名称
+ * 如果开启调试模式，chunk 名称即为 chunkOutputPaths 的页面 ID 组成的字符串，如 page1、page2_page3 等，便于观察 chunk 被哪些页面依赖。
+ * 如果关闭调试模式，chunk 名称则为 md5 哈希值。。
+ * @param chunkOutputPaths chunk 的输出路径数组。表示该 chunks 需要被打包到哪些路径下。
+ * @param pageIdMap 页面 ID 映射
+ * @param isDebug 是否开启调试模式
+ * @returns chunk 名称
+ */
+export function generateChunkName(chunkOutputPaths: PageRoot[], pageIdMap: Map<PageRoot, PageId>, isDebug: boolean = false): ChunkName {
+  const combinedChunksInfo = chunkOutputPaths.map((item) => pageIdMap.get(item)).join('_');
+  if (isDebug) {
+    return combinedChunksInfo as ChunkName;
+  }
+  const hash = createHash('md5').update(combinedChunksInfo).digest('hex');
+  return hash as ChunkName;
 }

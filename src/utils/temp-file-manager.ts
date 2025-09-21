@@ -17,12 +17,14 @@ import { logger } from './logger';
 export class TempFileManager {
   private tmpAppConfigPath: string;
   private appConfigPath: string;
+  private isDebug: boolean;
 
-  public constructor(appConfigPath: string) {
+  public constructor(appConfigPath: string, isDebug: boolean = false) {
     this.appConfigPath = appConfigPath;
     const fileName = path.basename(appConfigPath) as FilePath;
     const targetName = getFileNameWithoutExt(fileName);
     this.tmpAppConfigPath = path.join(__dirname, `tmp-${targetName}.js`);
+    this.isDebug = isDebug;
   }
 
   public createTmpAppConfig() {
@@ -36,13 +38,13 @@ export class TempFileManager {
     newCode = newCode.replace(/export\s+default\s+/, 'module.exports = ');
 
     fs.writeFileSync(this.tmpAppConfigPath, newCode, 'utf8');
-    logger.success(`创建临时 app.config 配置文件 ${this.tmpAppConfigPath}`, 'TempFileManager.createTmpAppConfig');
+    this.isDebug && logger.success(`创建临时 app.config 配置文件 ${this.tmpAppConfigPath}`, 'TempFileManager.createTmpAppConfig');
   }
 
   public removeTmpAppConfig() {
     if (!this.tmpAppConfigPath) return;
     fs.unlinkSync(this.tmpAppConfigPath);
-    logger.success('已删除临时 app.config 配置文件', 'TempFileManager.createTmpAppConfig');
+    this.isDebug && logger.success('已删除临时 app.config 配置文件', 'TempFileManager.createTmpAppConfig');
   }
 
   public async getAppConfig() {

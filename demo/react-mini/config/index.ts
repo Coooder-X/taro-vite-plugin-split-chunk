@@ -34,6 +34,7 @@ export default defineConfig<'vite'>(async (merge) => {
       vitePlugins: [
         viteSplitChunkPlugin({
           appConfigPath: join(__dirname, '../src/app.config.ts'),
+          isDebug: true,
         }),
       ],
     },
