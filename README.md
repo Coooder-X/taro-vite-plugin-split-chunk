@@ -1,4 +1,4 @@
-# vite-plugin-split-chunk
+# taro-vite-plugin-split-chunk
 
 一个专为 Taro 4.x 小程序项目设计的 Vite 插件，用于智能分包和代码分割优化。该插件能够根据小程序的分包配置自动将代码分割到对应的子包中，优化小程序的加载性能。
 
@@ -14,13 +14,13 @@
 ## 安装
 
 ```bash
-npm install vite-plugin-split-chunk --save-dev
+npm install taro-vite-plugin-split-chunk --save-dev
 ```
 
 或者使用 yarn:
 
 ```bash
-yarn add vite-plugin-split-chunk --dev
+yarn add taro-vite-plugin-split-chunk --dev
 ```
 
 ## 使用方法
@@ -30,7 +30,7 @@ yarn add vite-plugin-split-chunk --dev
 ```javascript
 // config/index.ts
 import { defineConfig } from 'vite'
-import viteSplitChunkPlugin from 'vite-plugin-split-chunk'
+import viteSplitChunkPlugin from 'taro-vite-plugin-split-chunk'
 export default defineConfig<'vite'>(async (merge) => {
   ...,
   compiler: {

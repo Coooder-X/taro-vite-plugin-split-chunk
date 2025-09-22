@@ -39,7 +39,7 @@ export default function viteSplitChunkPlugin(props: ViteSplitChunkPluginProps) {
   const { appConfigPath, isDebug = false } = props;
 
   return {
-    name: 'vite-plugin-split-chunk',
+    name: 'taro-vite-plugin-split-chunk',
 
     buildStart() {
       idImportedMap.clear();

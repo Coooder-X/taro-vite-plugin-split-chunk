@@ -1,14 +1,16 @@
 {
-  "name": "vite-plugin-split-chunk",
+  "name": "taro-vite-plugin-split-chunk",
   "type": "commonjs",
   "version": "1.0.0",
   "description": "",
   "keywords": [
+    "taro",
     "vite",
-    "Plugin"
+    "split-chunk",
+    "plugin"
   ],
-  "author": "",
-  "homepage": "",
+  "author": "Coooder-X",
+  "homepage": "https://github.com/Coooder-X/taro-vite-plugin-split-chunk",
   "license": "MIT",
   "main": "index.js",
   "typings": "types/index.d.ts",
