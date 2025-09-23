@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
-import viteSplitChunkPlugin from '../../../dist';
+// import viteSplitChunkPlugin from '../../../dist';
+import viteSplitChunkPlugin from 'taro-vite-plugin-split-chunk';
 
 import devConfig from './dev'
 import prodConfig from './prod'
